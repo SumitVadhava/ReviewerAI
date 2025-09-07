@@ -10,6 +10,7 @@
     <li>📊 History & Retrieval: Access past reviews anytime.</li>
   </ul>
 
+
   <h3>🏗️ Architecture</h3>
   <p>React (Frontend) → .NET (Backend API) || Python Model API (AI Reviewer) → SQL Server (Database)</p>
 
@@ -18,6 +19,7 @@
   <p><strong>Backend:</strong> .NET 9.0</p>
   <p><strong>API:</strong> Python</p>
   <p><strong>Database:</strong> MS SQL</p>
+
 
   <h3>🚀 Quick Start</h3>
   <h4>Clone the Repository</h4>
@@ -52,16 +54,17 @@ npm start
   </pre>
   <p>The app will be available at <a href="http://localhost:3000">http://localhost:3000</a>.</p>
 
+
   <h3>🗂️ Folder Structure</h3>
   <pre>
 reviewer-ai/
 ├── client/          # React UI
 ├── server/          # .NET Web API
 ├── Python_Server/   # Python AI service
-├── database/        # SQL Server scripts & procedures
 └── README.md
   </pre>
 
+  
   <h3>⚡ API Flow</h3>
   <ol>
     <li>React frontend sends authentication and file upload requests to the .NET API.</li>
@@ -77,6 +80,7 @@ reviewer-ai/
     <li>🔔 Notifications via Email or Slack.</li>
   </ul>
 
+  
   <h3>🤝 Contributing</h3>
   <p>Fork the repository.</p>
   <p>Create a branch: <code>git checkout -b feature/your-feature</code>.</p>
@@ -86,5 +90,7 @@ reviewer-ai/
 
   <h3>📜 License</h3>
   <p>MIT License</p>
+  
   <hr>
-  <p>Built with ❤️ by Sumit Vadhava</p>
+  
+  <h4>Built with ❤️ by Sumit Vadhava</h4>
