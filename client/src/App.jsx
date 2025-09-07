@@ -13,6 +13,7 @@ import { ToastContainer } from 'react-toastify';
 import Navbar from './components/Navbar'
 import { useAuth } from './context/AuthContext'
 import OnlineCompiler from './pages/onlineCompiler'
+import ProtectedRoute from './components/ProtectedRoute'
 // import { useState } from 'react'
 // import reactLogo from './assets/react.svg'
 // import viteLogo from '/vite.svg'
@@ -54,12 +55,12 @@ function App() {
         <main className='flex-grow'>
           <Routes>
             <Route path='/' element={<HomePage />} />
-            <Route path='/overview' element={<Overview />} />
+            <Route path='/overview' element={<ProtectedRoute><Overview /></ProtectedRoute>} />
             <Route path='/auth' element={<AuthForm userData={userProp} setUserData={setUserProp} />} />
-            <Route path='/upload' element={<UploadFile userData={userProp} setUserData={setUserProp}/>} />
-            <Route path='/profile' element={<ProFile userData={userProp} setUserData={setUserProp} />} />
-            <Route path='/review' element={<Review />} />
-            <Route path='/onlineCompiler' element={<OnlineCompiler />}/>
+            <Route path='/upload' element={<ProtectedRoute><UploadFile userData={userProp} setUserData={setUserProp}/></ProtectedRoute>} />
+            <Route path='/profile' element={<ProtectedRoute><ProFile userData={userProp} setUserData={setUserProp} /></ProtectedRoute>} />
+            <Route path='/review' element={<ProtectedRoute><Review /></ProtectedRoute>} />
+            <Route path='/onlineCompiler' element={<ProtectedRoute><OnlineCompiler /></ProtectedRoute>}/>
           </Routes>
         </main>
       </div>

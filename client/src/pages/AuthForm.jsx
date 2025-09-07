@@ -130,7 +130,7 @@ const AuthForm = ({ userData, setUserData }) => {
               picture: response.data.user.picture
             })
 
-            navigate('/');
+            navigate('/overview');
           }
           else if (response.data.message === "Invalid credentials") {
             toast.error("Invalid credentials", {
@@ -177,7 +177,7 @@ const AuthForm = ({ userData, setUserData }) => {
             // localStorage.setItem('user', JSON.stringify(response.data.user));
             login(response.data.user, response.data.token);
 
-            navigate('/');
+            navigate('/overview');
 
           } else if (response.data.message === "Email already exists") {
             toast.error("Already Have Account!", {
@@ -273,7 +273,7 @@ const AuthForm = ({ userData, setUserData }) => {
 
           console.log('User saved:', response.data);
 
-          navigate('/');
+          navigate('/overview');
           // console.log('token:', response.data.token);
           // console.log('User saved:', response.data.user);
         }
@@ -303,7 +303,7 @@ const AuthForm = ({ userData, setUserData }) => {
           console.log('User saved:', response.data);
 
           console.log(response.data);
-          navigate('/');
+          navigate('/overview');
 
         }
       } catch (error) {

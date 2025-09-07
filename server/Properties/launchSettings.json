@@ -19,7 +19,6 @@
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HTTPS_PORT": "7161",
         "JWT_SECRET": "my-top-secret"
-
       }
     }
   }

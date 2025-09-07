@@ -4,6 +4,7 @@ using server.Services;
 using Westwind.AspNetCore.LiveReload;
 using Serilog;
 using Serilog.Events;
+using Microsoft.AspNetCore.WebUtilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,9 +13,9 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 builder.Services.AddLiveReload();
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-// ✅ Register JwtService with secret from config
+options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// JWT Service
 builder.Services.AddScoped<JwtService>(provider =>
 {
     var config = provider.GetRequiredService<IConfiguration>();
@@ -36,27 +37,18 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .CreateLogger();
 
-// Log.Logger = new LoggerConfiguration()
-//     .MinimumLevel.Error() // Restrict logs to Error and Fatal levels only
-//     .WriteTo.Console(
-//         outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u3}] {Message:lj}{NewLine}{Exception}") // Simplified output
-//     .Enrich.FromLogContext()
-//     .Filter.ByExcluding(logEvent => logEvent.Level == LogEventLevel.Error && logEvent.MessageTemplate.Text.Contains("SpecificErrorToIgnore")) // Optional: Exclude specific error messages
-//     .CreateLogger();
-
-// Log.Logger = new LoggerConfiguration()
-//     .MinimumLevel.Warning()
-//     .MinimumLevel.Override("Microsoft.AspNetCore.Hosting.Diagnostics", LogEventLevel.Information) // for request start/finish
-//     .MinimumLevel.Override("Microsoft.AspNetCore.Server.Kestrel", LogEventLevel.Warning)
-//     .MinimumLevel.Override("Microsoft.AspNetCore.HttpLogging", LogEventLevel.Information) // Optional if you use `UseHttpLogging`
-//     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
-//     .MinimumLevel.Override("System", LogEventLevel.Warning)
-//     .WriteTo.Console()
-//     .Enrich.FromLogContext()
-//     .CreateLogger();
 
 
-builder.Host.UseSerilog();
+// builder.Host.UseSerilog();
+
+builder.Host.UseSerilog((context, configuration) =>
+{
+    configuration
+        .MinimumLevel.Information()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .MinimumLevel.Override("Microsoft.Hosting.Lifetime", LogEventLevel.Information)
+        .WriteTo.Console();
+});
 
 
 var app = builder.Build();
@@ -72,7 +64,44 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseLiveReload();
-app.UseSerilogRequestLogging(); // Logs HTTP info like morgan
+
+// app.Use(async (context, next) =>
+// {
+//     var logger = app.Logger;
+//     logger.LogInformation("➡ Request: {Method} {Path}",
+//         context.Request.Method,
+//         context.Request.Path);
+
+//     await next.Invoke();
+
+//     logger.LogInformation("⬅ Response: {StatusCode} {Path}",
+//         context.Response.StatusCode,
+//         context.Request.Path);
+// });
+
+// app.UseSerilogRequestLogging(options =>
+// {
+//     options.MessageTemplate = "➡️ HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+//     options.GetLevel = (httpContext, elapsed, ex) => LogEventLevel.Information;
+// });
+
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate =
+        "➡️ HTTP {RequestMethod} {RequestPath} responded {StatusCode} {ReasonPhrase} in {Elapsed:0.0000} ms";
+
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        var statusCode = httpContext.Response.StatusCode;
+        var reasonPhrase = ReasonPhrases.GetReasonPhrase(statusCode);
+
+        diagnosticContext.Set("StatusCode", statusCode);
+        diagnosticContext.Set("ReasonPhrase", reasonPhrase);
+    };
+
+    options.GetLevel = (httpContext, elapsed, ex) => LogEventLevel.Information;
+});
+
 app.UseAuthorization();
 app.MapControllers();
 app.UseCors("AllowAllOrigins"); 

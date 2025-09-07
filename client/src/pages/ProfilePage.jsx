@@ -1,26 +1,12 @@
-// import React from "react";
-// const ProFilePage = () => {
-//     return (
-//         <div className="flex flex-col items-center justify-center min-h-screen bg-[#00020b] text-white">
-//             <h1 className="text-4xl font-bold mb-6">Profile Page</h1>
-//             <p className="text-lg mb-4">This is your profile page.</p>
-//             <button className="px-6 py-3 bg-blue-600 rounded-lg hover:bg-blue-700 transition duration-300">
-//                 Edit Profile
-//             </button>
-//         </div>
-//     );
-// }   
-
-// export default ProFilePage; 
-
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Mail, Calendar, Settings, Edit3, MapPin, Link, Shield, Plus, Phone, Briefcase, GraduationCap } from 'lucide-react';
 import { FaFacebook, FaInstagram, FaLinkedin, FaGithub, FaTwitter } from 'react-icons/fa';
 import ModalInput from './../components/InputModel';   // adjust path as needed
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLinkedin, faXTwitter, faGithub } from '@fortawesome/free-brands-svg-icons';
 import { faLanguage } from '@fortawesome/free-solid-svg-icons';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProfilePage = ({userData}) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -28,28 +14,40 @@ const ProfilePage = ({userData}) => {
     const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
     const [newSpecialty, setNewSpecialty] = useState('');
     const [newLanguage, setNewLanguage] = useState('');
-    const [profileData, setProfileData] = useState({
-        username: userData.userName,
-        email: userData.email,
-        picture: userData.picture,
-        fullName: '',
-        bio: '',
-        location: '',
-        website: '',
-        phone: '',
-        company: '',
-        jobTitle: '',
-        education: '',
-        experience: '',
-        skills: '',
-        languages: [],
+    // Prefill profileData from userData
+    const getInitialProfileData = () => ({
+        username: userData.userName || '',
+        email: userData.email || '',
+        picture: userData.picture || '',
+        fullName: userData.fullName || '',
+        bio: userData.bio || '',
+        location: userData.location || '',
+        website: userData.website || '',
+        phone: userData.phone || '',
+        company: userData.company || '',
+        jobTitle: userData.jobTitle || '',
+        education: userData.education || '',
+        experience: userData.experience || '',
+        skills: userData.skills || '',
+        languages: userData.languages || [],
         socialLinks: {
-            linkedin: '',
-            twitter: '',
-            github: ''
+            linkedin: (userData.socialLinks && userData.socialLinks.linkedin) || '',
+            twitter: (userData.socialLinks && userData.socialLinks.twitter) || '',
+            github: (userData.socialLinks && userData.socialLinks.github) || ''
         },
-        specialties: [],
+        specialties: userData.specialties || [],
+        verified: userData.verified || false,
     });
+
+    const [profileData, setProfileData] = useState(getInitialProfileData());
+
+    // When userData changes (or when entering edit mode), update profileData
+    useEffect(() => {
+        if (isEditing) {
+            setProfileData(getInitialProfileData());
+        }
+        // eslint-disable-next-line
+    }, [isEditing, userData]);
 
     const handleInputChange = (field, value) => {
         setProfileData(prev => ({ ...prev, [field]: value }));
@@ -99,17 +97,38 @@ const ProfilePage = ({userData}) => {
     };
 
     const handleSave = () => {
+        // Basic validation before save
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(profileData.email)) {
+            toast.error('Please enter a valid email address.', { position: "top-center", autoClose : 1000 });
+            return;
+        }
+        if (profileData.phone && profileData.phone.length !== 10) {
+            toast.error('Phone number must be 10 digits.', { position: "top-center", autoClose: 1000 });
+            return;
+        }
         setIsEditing(false);
         // Add API call or other save logic here
     };
 
     const handleCancel = () => {
         setIsEditing(false);
-        // Reset profileData to original state if needed
+        setProfileData(getInitialProfileData()); // Reset to original data
+    };
+
+    const truncateText = (text, maxLength) => {
+        if (!text || text.length <= maxLength) return text;
+        return text.slice(0, maxLength - 3) + '...';
+    };
+
+    const truncateUrl = (url, maxLength = 28) => {
+        if (!url || url.length <= maxLength) return url;
+        return url.slice(0, maxLength - 3) + '...';
     };
 
     return (
         <div className="min-h-screen bg-[#00020b] text-gray-200">
+            <ToastContainer position="top-right" autoClose={3000} />
             {/* Header */}
             <div className="bg-gradient-to-r bg-[#00020b] px-6 py-8">
                 <div className="max-w-4xl mx-auto">
@@ -134,13 +153,13 @@ const ProfilePage = ({userData}) => {
                                     </h1>
                                 </div>
                                 {profileData.jobTitle && profileData.company && (
-                                    <p className="text-gray-400 text-sm">{profileData.jobTitle} at {profileData.company}</p>
+                                    <p className="text-gray-400 text-sm">{truncateText(profileData.jobTitle + ' at ' + profileData.company, 60)}</p>
                                 )}
                                 <div className="flex items-center space-x-4 text-sm text-gray-400">
                                     {profileData.location && (
                                         <div className="flex items-center space-x-1">
                                             <MapPin className="w-4 h-4" />
-                                            <span>{profileData.location}</span>
+                                            <span>{truncateText(profileData.location, 30)}</span>
                                         </div>
                                     )}
                                      <div className="flex items-center space-x-1">
@@ -149,13 +168,13 @@ const ProfilePage = ({userData}) => {
                                     }
                                     <Mail className='w-4 h-4'/>
                                     
-                                    <span>{userData.email}</span>
+                                    <span>{truncateText(userData.email, 50)}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <button
-                            onClick={() => setIsEditing(!isEditing)}
+                            onClick={isEditing ? handleSave : () => setIsEditing(!isEditing)}
                             className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg"
                         >
                             {isEditing ? <Settings className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
@@ -176,14 +195,14 @@ const ProfilePage = ({userData}) => {
                             <div className="flex items-center space-x-3">
                                 <Mail className="w-4 h-4 text-gray-500" />
                                 {isEditing ? (
-                                    <input
+                                    <input 
                                         type="email"
-                                        value={userData.email}
+                                        value={profileData.email}
                                         onChange={(e) => handleInputChange('email', e.target.value)}
                                         className="bg-gray-800 border border-gray-700 rounded px-3 py-1 text-sm flex-1 text-gray-200"
-                                    />
+                                        placeholder="Email address"/>
                                 ) : (
-                                    <span className="text-sm text-gray-400">{userData.email}</span>
+                                    <span className="text-sm text-gray-400">{userData.email || 'Email not provided'}</span>
                                 )}
                             </div>
                             <div className="flex items-center space-x-3">
@@ -192,7 +211,11 @@ const ProfilePage = ({userData}) => {
                                     <input
                                         type="tel"
                                         value={profileData.phone}
-                                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                            handleInputChange('phone', value);
+                                        }}
+                                        maxLength={10}
                                         className="bg-gray-800 border border-gray-700 rounded px-3 py-1 text-sm flex-1 text-gray-200"
                                         placeholder="Phone number"
                                     />
@@ -213,7 +236,7 @@ const ProfilePage = ({userData}) => {
                                 ) : (
                                     profileData.website ? (
                                         <a href={profileData.website} className="text-sm text-blue-500 hover:underline">
-                                            {profileData.website}
+                                            {truncateUrl(profileData.website)}
                                         </a>
                                     ) : (
                                         <span className="text-sm text-gray-500">Website not provided</span>
@@ -239,7 +262,13 @@ const ProfilePage = ({userData}) => {
                                         placeholder="LinkedIn profile"
                                     />
                                 ) : (
-                                    <span className="text-sm text-gray-400">{profileData.socialLinks.linkedin || 'LinkedIn not provided'}</span>
+                                    profileData.socialLinks.linkedin ? (
+                                        <a href={profileData.socialLinks.linkedin} className="text-sm text-blue-500 hover:underline">
+                                            {truncateUrl(profileData.socialLinks.linkedin)}
+                                        </a>
+                                    ) : (
+                                        <span className="text-sm text-gray-400">LinkedIn not provided</span>
+                                    )
                                 )}
                             </div>
                             <div className="flex items-center space-x-3">
@@ -254,7 +283,13 @@ const ProfilePage = ({userData}) => {
                                         placeholder="Twitter profile"
                                     />
                                 ) : (
-                                    <span className="text-sm text-gray-400">{profileData.socialLinks.twitter || 'Twitter not provided'}</span>
+                                    profileData.socialLinks.twitter ? (
+                                        <a href={profileData.socialLinks.twitter} className="text-sm text-blue-500 hover:underline">
+                                            {truncateUrl(profileData.socialLinks.twitter)}
+                                        </a>
+                                    ) : (
+                                        <span className="text-sm text-gray-400">Twitter not provided</span>
+                                    )
                                 )}
                             </div>
                             <div className="flex items-center space-x-2">
@@ -268,7 +303,13 @@ const ProfilePage = ({userData}) => {
                                         placeholder="GitHub profile"
                                     />
                                 ) : (
-                                    <span className="text-sm text-gray-400">{profileData.socialLinks.github || 'GitHub not provided'}</span>
+                                    profileData.socialLinks.github ? (
+                                        <a href={profileData.socialLinks.github} className="text-sm text-blue-500 hover:underline">
+                                            {truncateUrl(profileData.socialLinks.github)}
+                                        </a>
+                                    ) : (
+                                        <span className="text-sm text-gray-400">GitHub not provided</span>
+                                    )
                                 )}
                             </div>
                         </div>
@@ -288,7 +329,7 @@ const ProfilePage = ({userData}) => {
                             {profileData.specialties.length > 0 ? (
                                 profileData.specialties.map((spec, index) => (
                                     <div key={index} className="relative">
-                                        <span className="bg-blue-700 text-xs px-3 py-1 rounded-full font-medium">{spec}</span>
+                                        <span className="bg-blue-700 text-xs px-3 py-1 rounded-full font-medium">{truncateText(spec, 20)}</span>
                                         {isEditing && (
                                             <button onClick={() => removeSpecialty(index)}
                                                 className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
@@ -315,7 +356,7 @@ const ProfilePage = ({userData}) => {
                             {profileData.languages.length > 0 ? (
                                 profileData.languages.map((lang, index) => (
                                     <div key={index} className="relative">
-                                        <span className="bg-green-700 text-xs px-3 py-1 rounded-full font-medium">{lang}</span>
+                                        <span className="bg-green-700 text-xs px-3 py-1 rounded-full font-medium">{truncateText(lang, 20)}</span>
                                         {isEditing && (
                                             <button onClick={() => removeLanguage(index)}
                                                 className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
@@ -340,9 +381,12 @@ const ProfilePage = ({userData}) => {
                                 onChange={(e) => handleInputChange('bio', e.target.value)}
                                 className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm resize-none h-24 text-gray-200"
                                 placeholder="Tell us about yourself..."
+                                maxLength={500}
                             />
                         ) : (
-                            <p className="text-gray-400 leading-relaxed">{profileData.bio || 'Bio not provided yet'}</p>
+                            <p className="text-gray-400 leading-relaxed">
+                                {truncateText(profileData.bio || 'Bio not provided yet', 200)}
+                            </p>
                         )}
                     </div>
 
@@ -359,9 +403,10 @@ const ProfilePage = ({userData}) => {
                                         onChange={(e) => handleInputChange('fullName', e.target.value)}
                                         className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm text-gray-200"
                                         placeholder="Your full name"
+                                        maxLength={100}
                                     />
                                 ) : (
-                                    <p className="text-gray-400">{profileData.fullName || 'Not provided'}</p>
+                                    <p className="text-gray-400">{truncateText(profileData.fullName || 'Not provided', 50)}</p>
                                 )}
                             </div>
                             <div>
@@ -373,9 +418,10 @@ const ProfilePage = ({userData}) => {
                                         onChange={(e) => handleInputChange('location', e.target.value)}
                                         className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm text-gray-200"
                                         placeholder="City, Country"
+                                        maxLength={100}
                                     />
                                 ) : (
-                                    <p className="text-gray-400">{profileData.location || 'Not provided'}</p>
+                                    <p className="text-gray-400">{truncateText(profileData.location || 'Not provided', 50)}</p>
                                 )}
                             </div>
                         </div>
@@ -396,9 +442,10 @@ const ProfilePage = ({userData}) => {
                                         onChange={(e) => handleInputChange('jobTitle', e.target.value)}
                                         className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm text-gray-200"
                                         placeholder="Your job title"
+                                        maxLength={100}
                                     />
                                 ) : (
-                                    <p className="text-gray-400">{profileData.jobTitle || 'Not provided'}</p>
+                                    <p className="text-gray-400">{truncateText(profileData.jobTitle || 'Not provided', 50)}</p>
                                 )}
                             </div>
                             <div>
@@ -410,9 +457,10 @@ const ProfilePage = ({userData}) => {
                                         onChange={(e) => handleInputChange('company', e.target.value)}
                                         className="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-sm text-gray-200"
                                         placeholder="Company name"
+                                        maxLength={100}
                                     />
                                 ) : (
-                                    <p className="text-gray-400">{profileData.company || 'Not provided'}</p>
+                                    <p className="text-gray-400">{truncateText(profileData.company || 'Not provided', 50)}</p>
                                 )}
                             </div>
                         </div>
@@ -430,9 +478,10 @@ const ProfilePage = ({userData}) => {
                                 className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700"
                                 rows={4}
                                 placeholder='Tell us about your eduction...'
+                                maxLength={1000}
                             />
                         ) : (
-                            <p className="text-gray-300">{profileData.education || 'No education details available.'}</p>
+                            <p className="text-gray-300">{truncateText(profileData.education || 'No education details available.', 300)}</p>
                         )}
                     </div>
 
@@ -448,9 +497,10 @@ const ProfilePage = ({userData}) => {
                                 className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700"
                                 rows={4}
                                 placeholder='Tell us about your experience...'
+                                maxLength={1000}
                             />
                         ) : (
-                            <p className="text-gray-300">{profileData.experience || 'No experience details available.'}</p>
+                            <p className="text-gray-300">{truncateText(profileData.experience || 'No experience details available.', 300)}</p>
                         )}
                     </div>
 
@@ -466,9 +516,10 @@ const ProfilePage = ({userData}) => {
                                 className="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-700"
                                 rows={4}
                                 placeholder='Tell us about your skills...'
+                                maxLength={1000}
                             />
                         ) : (
-                            <p className="text-gray-300">{profileData.skills || 'No skills listed.'}</p>
+                            <p className="text-gray-300">{truncateText(profileData.skills || 'No skills listed.', 300)}</p>
                         )}
                     </div>
 

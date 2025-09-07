@@ -12,6 +12,8 @@ import Tempchat from '../assets/temp_chat3.png';
 import Tempchat2 from '../assets/temp_chat5.png';
 import Profile_img from '../assets/profile3.png';
 import { useAuth } from '../context/AuthContext';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 /**
  * Component for uploading a code file and selecting review categories.
@@ -62,7 +64,7 @@ const UploadFile = ({ userData }) => {
         setIsDragging(false);
         const droppedFile = e.dataTransfer.files[0];
         if (!droppedFile) {
-            alert("No file dropped.");
+            toast.error("No file dropped.", { position: "top-center", autoClose: 1500 });
             return;
         }
         handleFileUpload(droppedFile);
@@ -82,7 +84,7 @@ const UploadFile = ({ userData }) => {
         const file = e.target.files[0];
         if (!file) return;
         if (file.size > 5 * 1024 * 1024) {
-            alert("File size exceeds 5MB limit.");
+            toast.error("File size exceeds 5MB limit.", { position: "top-center", autoClose: 1500 });
             return;
         }
         handleFileUpload(file);
@@ -112,15 +114,15 @@ const UploadFile = ({ userData }) => {
 
     const handleSubmit = async () => {
         if (!uploadedFile) {
-            alert("Please upload a file before submitting.");
+            toast.error("Upload a file before submitting.", { position: "top-center", autoClose: 1500 });
             return;
         }
         if (selectedCategories.length === 0) {
-            alert("Please select at least one review category.");
+            toast.error("Select at least one review category.", { position: "top-center", autoClose: 1500 });
             return;
         }
         if (!selectedModel) {
-            alert("Please select a model before submitting.");
+            toast.error("Select a model before submitting.", { position: "top-center", autoClose: 1500 });
             return;
         }
         setIsUploading(true);
@@ -156,9 +158,9 @@ const UploadFile = ({ userData }) => {
         } catch (error) {
             console.error("Error uploading file:", error);
             if (error.response) {
-                alert(`Error: ${error.response.data.message || "Failed to upload file. Please try again."}`);
+                toast.error(`Error: ${error.response.data.message || "Failed to upload file. Please try again."}`, { position: "top-center", autoClose: 2000 });
             } else {
-                alert("Error uploading file. Please try again.");
+                toast.error("Error uploading file. Please try again.", { position: "top-center", autoClose: 2000 });
             }
         } finally {
             setIsUploading(false);
@@ -180,6 +182,7 @@ const UploadFile = ({ userData }) => {
 
     return (
         <div className="flex h-screen w-full bg-[#222222] text-white overflow-hidden">
+            <ToastContainer position="top-center" autoClose={2000} />
             {/* Sidebar */}
             <div className={`${collapsed ? 'w-16' : 'w-56'} bg-black p-4 flex flex-col items-center transition-all duration-300`}>
                 <div className='flex flex-row justify-between items-center w-full'>
