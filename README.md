@@ -1,4 +1,4 @@
-<h1>🧑‍💻 Project Reviewer AI</h1>
+<h1>🤖 Reviewer AI</h1>
   <p>An AI-powered code review platform built with React, .NET, Python (Model API), and SQL Server. Upload code, get intelligent feedback, and improve your projects with ease.</p>
 
   <h3>✨ Features</h3>
