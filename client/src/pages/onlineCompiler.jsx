@@ -305,7 +305,7 @@ const CodeReviewCompiler = () => {
   const analyzeCode = async () => {
     setIsAnalyzing(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/compile-review', {
+      const response = await fetch(`${import.meta.env.VITE_PYTHON_API_URL}/compile-review`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, language: selectedLanguage })

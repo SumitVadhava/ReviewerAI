@@ -3,7 +3,7 @@ const handleSubmit = async () => {
       try {
         if (isLoginMode) {
           // Login API call
-          const response = await axios.post('http://localhost:5161/api/auth/login', {
+          const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
             email: formData.email,
             password: formData.password
           });
@@ -46,7 +46,7 @@ const handleSubmit = async () => {
           // Store token or redirect
         } else {
           // Signup API call
-          const response = await axios.post('http://localhost:5161/api/auth/signup', {
+          const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/signup`, {
             username: formData.username,
             email: formData.email,
             password: formData.password

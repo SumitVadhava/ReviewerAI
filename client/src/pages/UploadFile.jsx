@@ -131,7 +131,7 @@ const UploadFile = ({ userData }) => {
         formData.append("categories", JSON.stringify(selectedCategories));
         formData.append("model", selectedModel);
         try {
-            const response = await axios.post("http://127.0.0.1:8000/review", formData, {
+            const response = await axios.post(`${import.meta.env.VITE_PYTHON_API_URL}/review`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

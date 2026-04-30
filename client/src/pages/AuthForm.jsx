@@ -101,7 +101,7 @@ const AuthForm = ({ userData, setUserData }) => {
       try {
         if (isLoginMode) {
           // Login API call
-          const response = await axios.post('http://localhost:5161/api/auth/login', {
+          const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/login`, {
             email: formData.email,
             password: formData.password
           });
@@ -154,7 +154,7 @@ const AuthForm = ({ userData, setUserData }) => {
           // Store token or redirect
         } else {
           // Signup API call
-          const response = await axios.post('http://localhost:5161/api/auth/signup', {
+          const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/signup`, {
             username: formData.username,
             email: formData.email,
             password: formData.password
@@ -249,7 +249,7 @@ const AuthForm = ({ userData, setUserData }) => {
         };
 
 
-        const response = await axios.post('http://localhost:5161/api/auth/googleLogin', userToSave);
+        const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/googleLogin`, userToSave);
         if (response.data.message === "Login successfully") {
           toast.success("Login successfully", {
             position: "top-right",

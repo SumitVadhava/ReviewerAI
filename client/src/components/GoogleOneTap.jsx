@@ -28,7 +28,7 @@ const GoogleOneTapLogin = () => {
 
       //  console.log("User Info:", userToSave);
 
-      const response = await axios.post('http://localhost:5161/api/auth/googleLogin', userToSave);
+      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/googleLogin`, userToSave);
       if (response.data.message === "Login successfully") {
         toast.success("Login successfully", {
           position: "top-right",
