@@ -88,9 +88,5 @@ reviewer-ai/
   <p>Push to the branch: <code>git push origin feature/your-feature</code>.</p>
   <p>Open a pull request with a clear description (follow conventional commits).</p>
 
-  <h3>📜 License</h3>
-  <p>MIT License</p>
-  
-  <hr>
   
   <h4>Built with ❤️ by Sumit Vadhava</h4>
