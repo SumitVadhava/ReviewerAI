@@ -3,5 +3,5 @@ uvicorn
 requests
 pydantic
 tenacity
-python-magic
 python-multipart
+python-dotenv

@@ -1,4 +1,3 @@
-from xml.parsers.expat import model
 from fastapi import FastAPI, File, UploadFile, Form, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -7,20 +6,31 @@ import requests
 import json
 from typing import List
 from tenacity import retry, stop_after_attempt, wait_exponential
-import magic
+import mimetypes
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI()
 
 # Enable CORS
+origins = [
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-API_URL = "https://api.groq.com/openai/v1/chat/completions"
+API_URL = os.getenv("GROQ_API_URL", "https://api.groq.com/openai/v1/chat/completions")
 # MODEL = "qwen/qwen3-32b"
 # MODEL = "openai/gpt-oss-120b"   
 MODEL_MAPPING = {
@@ -28,13 +38,12 @@ MODEL_MAPPING = {
     "GPT OSS 120":"openai/gpt-oss-120b",
     "Llama 4 Scout":"meta-llama/llama-4-scout-17b-16e-instruct",
     "Llama 3.3 70B":"llama-3.3-70b-versatile",
-    "Kimi K2":"moonshotai/kimi-k2-instruct",
-    "Deepseek R1":"deepseek-r1-distill-llama-70b",
 }
 
 
 def get_api_key():
-    api_key ="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"
+    api_key = os.getenv("GROQ_API_KEY")
+    
     if not api_key:
         raise HTTPException(status_code=500, detail="GROQ_API_KEY not found")
     return api_key
@@ -324,25 +333,37 @@ async def upload_file(file: UploadFile = File(...), categories: str = Form(...),
         content = await file.read()
 
         
-        # Validate file type by writing to a temporary file
-        mime = magic.Magic(mime=True)
-        temp_file_path = file.filename
-        with open(temp_file_path, "wb") as f:
-            f.write(content)
-        if not mime.from_file(temp_file_path).startswith("text"):
-            os.unlink(temp_file_path)
-            raise HTTPException(status_code=400, detail="Only text-based files are allowed")
+        # Validate file type using mimetypes
+        mime_type, _ = mimetypes.guess_type(file.filename)
+        if not mime_type or not mime_type.startswith("text"):
+            # Fallback check for common code extensions if mimetype fails
+            code_extensions = {'.js', '.py', '.java', '.cpp', '.txt', '.jsx', '.cs', '.ts'}
+            ext = os.path.splitext(file.filename)[1].lower()
+            if ext not in code_extensions:
+                raise HTTPException(status_code=400, detail="Only text-based code files are allowed")
         
         # Decode content to string
         code = content.decode("utf-8")
         
         # Parse categories
         try:
-            selected_categories = json.loads(categories)
-            if not isinstance(selected_categories, list):
-                raise ValueError("Categories must be a list")
-        except json.JSONDecodeError:
-            raise HTTPException(status_code=400, detail="Invalid categories format")
+            # Try to parse as JSON first (e.g., '["General", "Security"]')
+            parsed = json.loads(categories.replace("'", '"')) # Handle single quotes gracefully
+            if isinstance(parsed, list):
+                selected_categories = parsed
+            elif isinstance(parsed, str):
+                selected_categories = [parsed]
+            else:
+                selected_categories = [str(parsed)]
+        except (json.JSONDecodeError, ValueError):
+            # If not JSON, handle as plain string or comma-separated values
+            if "," in categories:
+                selected_categories = [c.strip() for c in categories.split(",") if c.strip()]
+            else:
+                selected_categories = [categories.strip()]
+        
+        if not selected_categories or not any(selected_categories):
+            selected_categories = ["General"]
         
         # Perform code review
         review_result = await review_code(code, selected_categories,model,api_key)
@@ -350,12 +371,9 @@ async def upload_file(file: UploadFile = File(...), categories: str = Form(...),
         
         return {"review": review_result, "filename": file.filename, "categories": selected_categories}
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-    finally:
-        try:
-            os.unlink(temp_file_path)
-        except:
-            pass
     
 class CodeRequest(BaseModel):
     code: str
