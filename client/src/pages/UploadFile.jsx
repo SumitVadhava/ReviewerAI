@@ -30,15 +30,75 @@ const UploadFile = ({ userData }) => {
     const [selectedModel, setSelectedModel] = useState(''); // Track selected model
     const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Toggle dropdown
     const dropdownRef = useRef(null);
+    const [history, setHistory] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [isSearchActive, setIsSearchActive] = useState(false);
+
+    // Load history from API on mount
+    useEffect(() => {
+        const fetchHistory = async () => {
+            if (!userData?.email) return;
+            try {
+                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/history/${userData.email}`);
+                setHistory(response.data);
+
+                // Optional: Sync local history to DB if it exists
+                const localHistory = localStorage.getItem('reviewHistory');
+                if (localHistory) {
+                    const parsedLocal = JSON.parse(localHistory);
+                    if (parsedLocal.length > 0) {
+                        for (const item of parsedLocal) {
+                            // Check if already in fetched history to avoid duplicates
+                            if (!response.data.some(h => h.filename === item.filename && h.createdAt === item.createdAt)) {
+                                await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/history`, {
+                                    userEmail: userData.email,
+                                    filename: item.filename,
+                                    categories: item.categories,
+                                    model: item.model,
+                                    reviewContent: item.choices[0].message.content
+                                });
+                            }
+                        }
+                        // Clear local storage after sync
+                        localStorage.removeItem('reviewHistory');
+                        // Re-fetch to get synced items
+                        const updated = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/history/${userData.email}`);
+                        setHistory(updated.data);
+                    }
+                }
+            } catch (e) {
+                console.error("Error fetching history:", e);
+            }
+        };
+        fetchHistory();
+    }, [userData?.email]);
+
+    // Save history to Database
+    const saveToHistory = async (newReview) => {
+        try {
+            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/history`, {
+                userEmail: userData.email,
+                filename: newReview.filename,
+                categories: newReview.categories,
+                model: newReview.model,
+                reviewContent: newReview.choices[0].message.content
+            });
+            // Refresh history from DB
+            const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/history/${userData.email}`);
+            setHistory(response.data);
+        } catch (e) {
+            console.error("Error saving history to DB:", e);
+            // Fallback to local state if API fails
+            setHistory(prev => [newReview, ...prev].slice(0, 20));
+        }
+    };
 
     const validFileTypes = ['text/javascript', 'text/x-python', 'text/x-java', 'text/x-c++', 'text/plain', 'text/jsx'];
     const modelOptions = [
         'Qwen3 32B',
         'GPT OSS 120',
         'Llama 4 Scout',
-        'Llama 3.3 70B',
-        'Kimi K2',
-        'Deepseek R1'
+        'Llama 3.3 70B'
     ];
 
     /**
@@ -112,6 +172,26 @@ const UploadFile = ({ userData }) => {
         setIsDropdownOpen(false);
     };
 
+    const highlightMatch = (text, query) => {
+        if (!query.trim()) return text;
+        const parts = text.split(new RegExp(`(${query})`, 'gi'));
+        return (
+            <span>
+                {parts.map((part, i) => 
+                    part.toLowerCase() === query.toLowerCase() ? (
+                        <mark key={i} className="bg-blue-500/50 text-white rounded-sm px-0.5">{part}</mark>
+                    ) : (
+                        part
+                    )
+                )}
+            </span>
+        );
+    };
+
+    const filteredHistory = history.filter(item => 
+        item.filename.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const handleSubmit = async () => {
         if (!uploadedFile) {
             toast.error("Upload a file before submitting.", { position: "top-center", autoClose: 1500 });
@@ -153,7 +233,10 @@ const UploadFile = ({ userData }) => {
                     }
                 ]
             };
-            console.log(formData);  
+
+            // Save to history before navigating
+            saveToHistory(transformedData);
+
             navigate("/review", { state: { jsonData: transformedData } });
         } catch (error) {
             console.error("Error uploading file:", error);
@@ -196,29 +279,75 @@ const UploadFile = ({ userData }) => {
                     </div>
                 </div>
                 <hr className='border border-white w-full my-2 opacity-60' />
-                <button className="w-full py-2 mb-2 flex gap-3 items-center hover:bg-zinc-800 transition-colors duration-200 rounded-lg">
-                    <img src={NewChat} alt="New Chat" className='w-7' />
-                    {!collapsed && <span>New Chat</span>}
-                </button>
-                <button className="w-full py-2 mb-2 flex gap-3 items-center hover:bg-zinc-800 transition-colors duration-200 rounded-lg">
-                    <img src={SearchChat} alt="Search Chat" className='w-7' />
-                    {!collapsed && <span>Search Chat</span>}
-                </button>
-                <button className="w-full py-2 mb-2 flex gap-3 items-center hover:bg-zinc-800 transition-colors duration-200 rounded-lg">
-                    <img src={Library} alt="Library" className='w-7' />
-                    {!collapsed && <span>Library</span>}
-                </button>
+                <div className="w-full px-2 mt-2">
+                    {isSearchActive ? (
+                        <div className="flex items-center gap-2 bg-zinc-900 rounded-lg px-2 py-1.5 border border-blue-500/50 animate-fadeIn">
+                            <img src={SearchChat} alt="Search" className="w-5 h-5 opacity-70" />
+                            <input
+                                autoFocus
+                                type="text"
+                                placeholder="Search..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onBlur={() => { if (!searchTerm) setIsSearchActive(false); }}
+                                className="bg-transparent border-none outline-none text-xs w-full text-white placeholder-gray-500"
+                            />
+                            {searchTerm && (
+                                <button onClick={() => setSearchTerm('')} className="text-gray-500 hover:text-white">×</button>
+                            )}
+                        </div>
+                    ) : (
+                        <button 
+                            onClick={() => setIsSearchActive(true)}
+                            className="w-full py-2 flex gap-3 items-center hover:bg-zinc-800 transition-colors duration-200 rounded-lg group"
+                        >
+                            <img src={SearchChat} alt="Search Chat" className='w-7 group-hover:scale-110 transition-transform' />
+                            {!collapsed && <span className="text-sm font-medium">Search Chat</span>}
+                        </button>
+                    )}
+                </div>
                 <hr className='border border-white w-full my-2 opacity-60' />
                 {!collapsed && (
-                    <div className="self-start">
-                        <p>Chats</p>
+                    <div className="self-start mt-4 mb-2">
+                        <p className="text-xs text-gray-500 uppercase tracking-wider font-bold">Review History</p>
                     </div>
                 )}
-                <div className='flex flex-col items-center mt-10'>
-                    <span>
-                        <img src={History_icon} alt="History" className='w-11 h-11' />
-                    </span>
-                    {!collapsed && <p>No chats</p>}
+                <div className='flex flex-col items-center w-full overflow-y-auto max-h-[60vh] custom-scrollbar px-2'>
+                    {filteredHistory.length > 0 ? (
+                        filteredHistory.map((item, index) => (
+                            <button
+                                key={index}
+                                onClick={() => navigate("/review", {
+                                    state: {
+                                        jsonData: {
+                                            filename: item.filename,
+                                            categories: item.categories,
+                                            model: item.model,
+                                            choices: [{ message: { content: item.reviewContent } }]
+                                        }
+                                    }
+                                })}
+                                className="w-full py-2 px-2 mb-1 flex gap-3 items-center hover:bg-zinc-800 transition-all duration-200 rounded-lg text-left group"
+                            >
+                                <img src={History_icon} alt="History" className='w-5 h-5 opacity-70 group-hover:scale-110 transition-transform' />
+                                {!collapsed && (
+                                    <div className="flex flex-col overflow-hidden">
+                                        <span className="text-sm truncate w-32">{highlightMatch(item.filename, searchTerm)}</span>
+                                        <span className="text-[10px] text-gray-500">{new Date(item.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                )}
+                            </button>
+                        ))
+                    ) : (
+                        <div className='flex flex-col items-center mt-10'>
+                            <span>
+                                <img src={History_icon} alt="History" className='w-11 h-11 opacity-30' />
+                            </span>
+                            {!collapsed && <p className="text-gray-500 text-sm mt-2">
+                                {searchTerm ? "No matches found" : "No reviews yet"}
+                            </p>}
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -300,7 +429,7 @@ const UploadFile = ({ userData }) => {
                                 </div>
                             </div>
                             <div className="flex gap-4 flex-row-reverse">
-                               <button
+                                <button
                                     className="w-full py-2 bg-red-500 text-white text-opacity-90 rounded-md text-sm font-bold transition-colors"
                                     onClick={handleDelete}
                                 >
@@ -320,7 +449,7 @@ const UploadFile = ({ userData }) => {
                                         "🧑‍💻 Submit for Review"
                                     )}
                                 </button>
-                             
+
                             </div>
                         </div>
                     </div>

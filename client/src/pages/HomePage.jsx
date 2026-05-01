@@ -25,7 +25,7 @@ const HomePage = () => {
                 window.google.accounts.id.cancel(); // 🔥 This cancels the prompt
             }
             console.log(isAuthenticated);
-            
+
         }
         else {
             setShowGoogleOneTap(true);
@@ -96,9 +96,9 @@ const HomePage = () => {
                     </div>
                 </div>
                 <footer className='pb-4 max-w-7xl mx-auto w-full'>
-                    <hr className="my-6 border border-purple-400 opacity-50 w-full mx-auto rounded-md" />
+                    <hr className="my-6 border border-blue-500/50 opacity-50 w-full mx-auto rounded-md" />
                     <div className='text-white'>
-                        © 2025 ReviewerAI. All rights reserved.
+                        © 2026 ReviewerAI. All rights reserved.
                     </div>
                 </footer>
             </div>

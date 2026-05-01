@@ -1322,7 +1322,7 @@ const handleDownloadPDF = async () => {
                         icon={Upload}
                         label="Upload JSON"
                         onClick={() => document.getElementById('fileInput').click()}
-                        className="bg-yellow-600 hover:bg-yellow-700"
+                        className="bg-zinc-700 hover:bg-zinc-600"
                     />
                     <input
                         id="fileInput"
@@ -1361,13 +1361,13 @@ const handleDownloadPDF = async () => {
                         icon={FileText}
                         label="Download PDF"
                         onClick={handleDownloadPDF}
-                        className="bg-red-600 hover:bg-red-700"
+                        className="bg-blue-700 hover:bg-blue-800"
                     />
                     <ActionButton
                         icon={Share2}
                         label="Share"
                         onClick={handleShare}
-                        className="bg-purple-600 hover:bg-purple-700"
+                        className="bg-indigo-600 hover:bg-indigo-700"
                     />
                     <input
                         id="fileInput"

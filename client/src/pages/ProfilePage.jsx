@@ -7,6 +7,64 @@ import { faLinkedin, faXTwitter, faGithub } from '@fortawesome/free-brands-svg-i
 import { faLanguage } from '@fortawesome/free-solid-svg-icons';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import axios from 'axios';
+import ImageCropper from './../components/ImageCropper';
+import DefaultProfile from './../assets/profile3.png';
+import { useRef } from 'react';
+
+const ProfileSkeleton = () => (
+    <div className="min-h-screen bg-[#00020b] text-gray-200 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="bg-[#00020b] px-6 py-8">
+            <div className="max-w-4xl mx-auto">
+                <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-6">
+                        <div className="w-24 h-24 rounded-full bg-gray-800 shadow-lg"></div>
+                        <div className="space-y-3">
+                            <div className="h-8 w-48 bg-gray-800 rounded"></div>
+                            <div className="h-4 w-64 bg-gray-800 rounded"></div>
+                            <div className="flex space-x-4">
+                                <div className="h-4 w-24 bg-gray-800 rounded"></div>
+                                <div className="h-4 w-32 bg-gray-800 rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="h-10 w-28 bg-gray-800 rounded-lg"></div>
+                </div>
+            </div>
+        </div>
+
+        {/* Main Content Skeleton */}
+        <div className="max-w-4xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Panel Skeleton */}
+            <div className="space-y-6 lg:col-span-1">
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-6 h-32">
+                        <div className="h-5 w-32 bg-gray-800 rounded mb-4"></div>
+                        <div className="space-y-3">
+                            <div className="h-4 w-full bg-gray-800 rounded"></div>
+                            <div className="h-4 w-3/4 bg-gray-800 rounded"></div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Right Panel Skeleton */}
+            <div className="space-y-6 lg:col-span-2">
+                {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="bg-gray-900 border border-gray-800 rounded-xl p-6 h-40">
+                        <div className="h-6 w-40 bg-gray-800 rounded mb-4"></div>
+                        <div className="space-y-3">
+                            <div className="h-4 w-full bg-gray-800 rounded"></div>
+                            <div className="h-4 w-full bg-gray-800 rounded"></div>
+                            <div className="h-4 w-2/3 bg-gray-800 rounded"></div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+);
 
 const ProfilePage = ({userData}) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -14,6 +72,9 @@ const ProfilePage = ({userData}) => {
     const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
     const [newSpecialty, setNewSpecialty] = useState('');
     const [newLanguage, setNewLanguage] = useState('');
+    const [imageToCrop, setImageToCrop] = useState(null);
+    const [isCropperOpen, setIsCropperOpen] = useState(false);
+    const fileInputRef = useRef(null);
     // Prefill profileData from userData
     const getInitialProfileData = () => ({
         username: userData.userName || '',
@@ -37,17 +98,62 @@ const ProfilePage = ({userData}) => {
         },
         specialties: userData.specialties || [],
         verified: userData.verified || false,
+        profilePicture: userData.profilePicture || '',
     });
 
     const [profileData, setProfileData] = useState(getInitialProfileData());
+    const [isLoading, setIsLoading] = useState(false);
 
-    // When userData changes (or when entering edit mode), update profileData
+    // Fetch profile data from backend
     useEffect(() => {
-        if (isEditing) {
-            setProfileData(getInitialProfileData());
+        const fetchProfile = async () => {
+            if (!userData.email) return;
+            
+            try {
+                setIsLoading(true);
+                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/profile/${userData.email}`);
+                if (response.data) {
+                    const data = response.data;
+                    setProfileData({
+                        ...getInitialProfileData(),
+                        fullName: data.fullName || userData.fullName || '',
+                        bio: data.bio || userData.bio || '',
+                        location: data.location || userData.location || '',
+                        website: data.website || userData.website || '',
+                        phone: data.phone || userData.phone || '',
+                        company: data.company || userData.company || '',
+                        jobTitle: data.jobTitle || userData.jobTitle || '',
+                        education: data.education || userData.education || '',
+                        experience: data.experience || userData.experience || '',
+                        skills: data.skills || userData.skills || '',
+                        languages: data.languages ? JSON.parse(data.languages) : (userData.languages || []),
+                        specialties: data.specialties ? JSON.parse(data.specialties) : (userData.specialties || []),
+                        socialLinks: {
+                            linkedin: data.linkedIn || (userData.socialLinks && userData.socialLinks.linkedin) || '',
+                            twitter: data.twitter || (userData.socialLinks && userData.socialLinks.twitter) || '',
+                            github: data.gitHub || (userData.socialLinks && userData.socialLinks.github) || ''
+                        },
+                        verified: data.verified || userData.verified || false,
+                        profilePicture: data.profilePicture || userData.profilePicture || '',
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+                // Profile might not exist yet, which is fine
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProfile();
+    }, [userData.email]);
+
+    // When userData changes, update name/email if they are empty
+    useEffect(() => {
+        if (!profileData.fullName && userData.userName) {
+            setProfileData(prev => ({ ...prev, fullName: userData.userName }));
         }
-        // eslint-disable-next-line
-    }, [isEditing, userData]);
+    }, [userData.userName, profileData.fullName]);
 
     const handleInputChange = (field, value) => {
         setProfileData(prev => ({ ...prev, [field]: value }));
@@ -96,7 +202,7 @@ const ProfilePage = ({userData}) => {
         }));
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         // Basic validation before save
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(profileData.email)) {
@@ -107,18 +213,77 @@ const ProfilePage = ({userData}) => {
             toast.error('Phone number must be 10 digits.', { position: "top-center", autoClose: 1000 });
             return;
         }
-        setIsEditing(false);
-        // Add API call or other save logic here
+
+        setIsLoading(true);
+
+        try {
+            const dataToSave = {
+                userEmail: userData.email,
+                fullName: profileData.fullName,
+                bio: profileData.bio,
+                location: profileData.location,
+                website: profileData.website,
+                phone: profileData.phone,
+                company: profileData.company,
+                jobTitle: profileData.jobTitle,
+                education: profileData.education,
+                experience: profileData.experience,
+                skills: profileData.skills,
+                languages: JSON.stringify(profileData.languages),
+                specialties: JSON.stringify(profileData.specialties),
+                linkedIn: profileData.socialLinks.linkedin,
+                twitter: profileData.socialLinks.twitter,
+                gitHub: profileData.socialLinks.github,
+                profilePicture: profileData.profilePicture
+            };
+
+            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/profile`, dataToSave);
+            toast.success('Profile updated successfully!', { position: "top-center", autoClose: 1500 });
+            setIsEditing(false);
+        } catch (error) {
+            console.error("Error saving profile:", error);
+            toast.error('Failed to update profile. Please try again.', { position: "top-center", autoClose: 1500 });
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleCancel = () => {
         setIsEditing(false);
-        setProfileData(getInitialProfileData()); // Reset to original data
+        // Removed reset to prevent data loss after fetching
     };
 
     const truncateText = (text, maxLength) => {
         if (!text || text.length <= maxLength) return text;
         return text.slice(0, maxLength - 3) + '...';
+    };
+
+    const handleImageClick = () => {
+        if (isEditing) {
+            fileInputRef.current?.click();
+        }
+    };
+
+    const handleFileChange = (e) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error("File size exceeds 5MB limit.", { position: "top-center", autoClose: 2000 });
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                setImageToCrop(reader.result);
+                setIsCropperOpen(true);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    const onCropComplete = (croppedImage) => {
+        setProfileData(prev => ({ ...prev, profilePicture: croppedImage }));
+        setIsCropperOpen(false);
+        setImageToCrop(null);
     };
 
     const truncateUrl = (url, maxLength = 28) => {
@@ -128,23 +293,38 @@ const ProfilePage = ({userData}) => {
 
     return (
         <div className="min-h-screen bg-[#00020b] text-gray-200">
-            <ToastContainer position="top-right" autoClose={3000} />
+            {isLoading ? (
+                <ProfileSkeleton />
+            ) : (
+                <>
+                    <ToastContainer position="top-right" autoClose={3000} />
             {/* Header */}
             <div className="bg-gradient-to-r bg-[#00020b] px-6 py-8">
                 <div className="max-w-4xl mx-auto">
                     <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-6">
-                            <div className="relative">
-                                <img
-                                    src={userData.picture}
-                                    alt="Profile"
-                                    className="w-24 h-24 rounded-full border-4 border-gray-700 shadow-lg cursor-pointer"
+                            <div className="relative group">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={handleFileChange}
+                                    accept="image/*"
+                                    className="hidden"
                                 />
-                                {profileData.verified && (
-                                    <div className="absolute -bottom-1 -right-1 bg-blue-600 rounded-full p-1">
-                                        <Shield className="w-4 h-4 text-white" />
+                                <img
+                                    src={profileData.profilePicture || userData.picture || DefaultProfile}
+                                    alt="Profile"
+                                    className={`w-24 h-24 rounded-full border-4 border-gray-700 shadow-lg object-cover ${isEditing ? 'cursor-pointer hover:opacity-75 transition-opacity' : ''}`}
+                                    onClick={handleImageClick}
+                                />
+                                {isEditing && (
+                                    <div 
+                                        className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                                    >
+                                        <Edit3 className="w-6 h-6 text-white" />
                                     </div>
                                 )}
+
                             </div>
                             <div className="space-y-2">
                                 <div className="flex items-center space-x-3">
@@ -175,14 +355,27 @@ const ProfilePage = ({userData}) => {
                         </div>
                         <button
                             onClick={isEditing ? handleSave : () => setIsEditing(!isEditing)}
-                            className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg"
+                            disabled={isLoading}
+                            className="flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 px-4 py-2 rounded-lg disabled:opacity-50"
                         >
-                            {isEditing ? <Settings className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
-                            <span>{isEditing ? 'Save' : 'Edit'}</span>
+                            {isLoading ? (
+                                <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin"></div>
+                            ) : (
+                                isEditing ? <Settings className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />
+                            )}
+                            <span>{isEditing ? 'Save' : 'Edit Profile'}</span>
                         </button>
                     </div>
                 </div>
             </div>
+
+            {isCropperOpen && (
+                <ImageCropper
+                    image={imageToCrop}
+                    onCropComplete={onCropComplete}
+                    onCancel={() => setIsCropperOpen(false)}
+                />
+            )}
 
             {/* Main Section */}
             <div className="max-w-4xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -329,7 +522,7 @@ const ProfilePage = ({userData}) => {
                             {profileData.specialties.length > 0 ? (
                                 profileData.specialties.map((spec, index) => (
                                     <div key={index} className="relative">
-                                        <span className="bg-blue-700 text-xs px-3 py-1 rounded-full font-medium">{truncateText(spec, 20)}</span>
+                                        <span className="bg-gray-800 border border-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full font-medium">{truncateText(spec, 20)}</span>
                                         {isEditing && (
                                             <button onClick={() => removeSpecialty(index)}
                                                 className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
@@ -356,7 +549,7 @@ const ProfilePage = ({userData}) => {
                             {profileData.languages.length > 0 ? (
                                 profileData.languages.map((lang, index) => (
                                     <div key={index} className="relative">
-                                        <span className="bg-green-700 text-xs px-3 py-1 rounded-full font-medium">{truncateText(lang, 20)}</span>
+                                        <span className="bg-gray-800 border border-gray-700 text-gray-300 text-xs px-3 py-1 rounded-full font-medium">{truncateText(lang, 20)}</span>
                                         {isEditing && (
                                             <button onClick={() => removeLanguage(index)}
                                                 className="absolute -top-1 -right-1 bg-red-600 text-white rounded-full w-4 h-4 flex items-center justify-center text-xs">×</button>
@@ -566,6 +759,8 @@ const ProfilePage = ({userData}) => {
                 title="Add Language"
                 placeholder="Enter a language"
             />
+        </>
+            )}
         </div>
     );
 };

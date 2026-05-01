@@ -2,12 +2,23 @@ import React from 'react';
 import styled from 'styled-components';
 import { LogIn } from 'lucide-react';
 import { UserPlus } from 'lucide-react';
-const Button = ({login, onClick}) => {
+const Button = ({login, onClick, isLoading}) => {
   return (
     <StyledWrapper>
-      <button type='submit' className="btn" onClick={onClick}>
-        {login ? <LogIn /> : <UserPlus />}
-        {login ? 'Login' : 'Sign Up'}
+      <button 
+        type='submit' 
+        className={`btn ${isLoading ? 'loading' : ''}`} 
+        onClick={onClick}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <div className="spinner"></div>
+        ) : (
+          login ? <LogIn size={20} /> : <UserPlus size={20} />
+        )}
+        <span>
+          {isLoading ? (login ? 'Logging in...' : 'Signing up...') : (login ? 'Login' : 'Sign Up')}
+        </span>
       </button>
     </StyledWrapper>
   );
@@ -99,6 +110,25 @@ const StyledWrapper = styled.div`
 
   .btn:where(:hover, :focus) {
     color: #fff;
-  }`;
+  }
+
+  .btn.loading {
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+
+  .spinner {
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+`;
 
 export default Button;

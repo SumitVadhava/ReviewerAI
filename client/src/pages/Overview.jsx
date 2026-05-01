@@ -67,9 +67,9 @@ const Overview = () => {
                     </p>
                 </div>
                 <footer className='pb-4 max-w-7xl mx-auto w-full'>
-                    <hr className="my-5 border border-purple-400 opacity-50 w-full mx-auto rounded-md" />
+                    <hr className="my-5 border border-blue-500/50 opacity-50 w-full mx-auto rounded-md" />
                     <div className='text-white'>
-                        © 2025 ReviewerAI. All rights reserved.
+                        © 2026 ReviewerAI. All rights reserved.
                     </div>
                 </footer> 
             </div>

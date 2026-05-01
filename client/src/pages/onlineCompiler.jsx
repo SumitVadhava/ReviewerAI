@@ -252,7 +252,7 @@ const CodeReviewCompiler = () => {
       .replace(/__(.*?)__/g, '<strong class="font-bold">$1</strong>')
       .replace(/\*(.*?)\*/g, '<em class="italic">$1</em>')
       .replace(/_(.*?)_/g, '<em class="italic">$1</em>')
-      .replace(/`(.*?)`/g, '<code class="bg-gray-800 px-1 rounded text-pink-300">$1</code>')
+      .replace(/`(.*?)`/g, '<code class="bg-gray-800 px-1 rounded text-blue-300">$1</code>')
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 hover:underline" target="_blank">$1</a>')
       .replace(/:([a-z_]+):/g, (match, emoji) => {
         const emojiMap = {
@@ -660,7 +660,7 @@ const CodeReviewCompiler = () => {
         {activeTab === 'editor' && (
           <div className="flex-1 bg-gray-900 relative">
             <div className="absolute inset-0 flex">
-              <div className="w-12 bg-gray-900 border-r border-gray-800 p-4 text-right text-gray-500 text-sm font-mono leading-6 select-none overflow-clip">
+              <div id="lineNumbers" className="w-12 bg-gray-900 border-r border-gray-800 p-4 text-right text-gray-500 text-sm font-mono leading-6 select-none overflow-clip">
                 <pre>{lineNumbers}</pre>
               </div>
               <div className="flex-1">

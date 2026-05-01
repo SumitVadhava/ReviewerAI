@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 
 const AuthForm = ({ userData, setUserData }) => {
   const [isLoginMode, setIsLoginMode] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
@@ -98,6 +99,7 @@ const AuthForm = ({ userData, setUserData }) => {
 
   const handleSubmit = async () => {
     if (validateForm()) {
+      setIsLoading(true);
       try {
         if (isLoginMode) {
           // Login API call
@@ -126,7 +128,7 @@ const AuthForm = ({ userData, setUserData }) => {
             setUserData({
               userName: response.data.user.username,
               email: response.data.user.email,
-              sub: response.data.user._id,
+              sub: response.data.user.id,
               picture: response.data.user.picture
             })
 
@@ -222,6 +224,8 @@ const AuthForm = ({ userData, setUserData }) => {
             progress: undefined,
           });
         }
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -250,7 +254,7 @@ const AuthForm = ({ userData, setUserData }) => {
 
 
         const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/googleLogin`, userToSave);
-        if (response.data.message === "Login successfully") {
+        if (response.data.message === "Login successfully" || response.data.message === "Email already exists") {
           toast.success("Login successfully", {
             position: "top-right",
             autoClose: 900,
@@ -260,51 +264,12 @@ const AuthForm = ({ userData, setUserData }) => {
             draggable: true,
             progress: undefined,
           });
-          // localStorage.setItem('token', response.data.token);
-          // localStorage.setItem('user', JSON.stringify(response.data.user));
-          login(response.data.user, response.data.token);
+          
+          const token = response.data.token || response.data.token1 || response.data.token; // Fallback just in case
+          login(response.data.user, token);
 
-          setUserData({
-            userName: response.data.user.username,
-            email: response.data.user.email,
-            sub: response.data.user._id,
-            picture: response.data.user.pictureUrl
-          })
-
-          console.log('User saved:', response.data);
-
+          console.log('User logged in:', response.data);
           navigate('/overview');
-          // console.log('token:', response.data.token);
-          // console.log('User saved:', response.data.user);
-        }
-
-        else if (response.data.message == 'Email already exists') {
-          // toast.error("Already Have Account", {
-          //   position: "top-right",
-          //   autoClose: 900,
-          //   hideProgressBar: false,
-          //   pauseOnHover: true,
-          //   draggable: true,
-          //   progress: undefined,
-          //   closeOnClick: true,
-          // });
-
-          toast.success("Login successfully", {
-            position: "top-right",
-            autoClose: 900,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-          });
-
-          login(response.data.user, response.data.token1);
-          console.log('User saved:', response.data);
-
-          console.log(response.data);
-          navigate('/overview');
-
         }
       } catch (error) {
         console.error('Error saving user:', error);
@@ -364,7 +329,7 @@ const AuthForm = ({ userData, setUserData }) => {
     <div className=" flex items-center justify-center p-4" style={{ backgroundColor: '#00020b' }}>
       <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-10 w-full max-w-md shadow-2xl relative overflow-hidden hover:bg-white/8 transition-all duration-300 hover:shadow-3xl ">
         {/* Top border gradient */}
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-cyan-400"></div>
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-blue-400 to-cyan-400"></div>
 
         {/* Animated background gradient 
         <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-purple-500/5 to-cyan-400/5 opacity-50"></div>*/}
@@ -486,7 +451,7 @@ const AuthForm = ({ userData, setUserData }) => {
           >
             {isLoginMode ? 'Login' : 'Sign Up'}
           </button>   */}
-          <LoginButton login={isLoginMode} onClick={handleSubmit} />
+          <LoginButton login={isLoginMode} onClick={handleSubmit} isLoading={isLoading} />
 
         </div>
 

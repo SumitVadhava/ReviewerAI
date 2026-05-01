@@ -17,9 +17,8 @@ const Avatar = ({ userData }) => {
     if (!userData) return null;
 
     const handleLogout = () => {
-        // setShowConfirm(true);
-        logout();
-        navigate('/');
+        setShowConfirm(true);
+        setOpen(false);
     };
 
     const confirmLogout = () => {
@@ -41,7 +40,7 @@ const Avatar = ({ userData }) => {
         <div className="relative">
             <button
                 onClick={() => setOpen(!open)}
-                className="relative w-12 h-12 bg-white border-none rounded-full cursor-pointer transition-all shadow-md overflow-hidden hover:scale-110 hover:rotate-3"
+                className="relative w-12 h-12 bg-white border-none rounded-full cursor-pointer transition-all shadow-md overflow-hidden hover:opacity-90"
             >
                 <img
                     src={userData.picture || UserImage}
@@ -55,13 +54,10 @@ const Avatar = ({ userData }) => {
                 <div className="absolute right-0 top-16 w-80 h-80 bg-black from-black via-zinc-900/30 to-zinc-800/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/10 overflow-hidden z-[1000] animate-slideIn">
                     {/* Decorative elements */}
                     <div className="absolute top-0 left-0 w-full h-full">
-                        <div className="absolute top-4 right-6 w-8 h-8 bg-gradient-to-br from-pink-500/10 to-purple-500/10 rounded-full blur-sm"></div>
-                        <div className="absolute top-12 right-12 w-4 h-4 bg-gradient-to-br from-yellow-500/20 to-orange-500/20 rounded-full blur-sm"></div>
-                        <div className="absolute bottom-20 left-8 w-6 h-6 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-full blur-sm"></div>
                     </div>
 
                     {/* Header */}
-                    <div className="relative p-4 bg-gradient-to-r from-zinc-800/40 via-zinc-700/40 to-zinc-900/40 border-b border-white/10">
+                    <div className="relative p-4 bg-zinc-900/80 border-b border-white/10">
                         <div className="flex items-center gap-5">
                             <div className="relative">
                                 <div className="w-16 h-16 rounded-full overflow-hidden shadow-lg border-3 border-white/20 bg-gradient-to-br from-zinc-700 to-zinc-600 p-1">
@@ -79,7 +75,7 @@ const Avatar = ({ userData }) => {
                             </div>
                             <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                    <h3 className="text-xl text-white font-medium bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
+                                    <h3 className="text-xl text-white font-medium bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                                         {userData.userName !== "" ? userData.userName : "User Name"}
                                     </h3>
                                     <Star size={16} className="text-yellow-400 fill-yellow-400" />
@@ -91,15 +87,15 @@ const Avatar = ({ userData }) => {
 
                     {/* Menu */}
                     <div className="py-3 relative">
-                        <Link to="/profile" onClick={() => setOpen(!open)} state={userData} className="group flex items-center px-8 py-4 hover:bg-gradient-to-r hover:from-zinc-900 hover:to-zinc-900 transition-all duration-300 border-b border-white/10">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-zinc-800/40 via-zinc-700/40 to-zinc-900/40 mr-4 group-hover:scale-110 transition-transform shadow-sm">
-                                <User size={20} className="text-violet-400" />
+                        <Link to="/profile" onClick={() => setOpen(!open)} state={userData} className="group flex items-center px-8 py-4 hover:bg-zinc-900 transition-all duration-300 border-b border-white/10">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-zinc-800/40 mr-4 group-hover:bg-zinc-700/40 transition-colors shadow-sm">
+                                <User size={20} className="text-blue-400" />
                             </div>
                             <div className="flex-1">
-                                <div className="font-semibold text-md text-white group-hover:text-violet-300">Your Profile</div>
+                                <div className="font-semibold text-md text-white">Your Profile</div>
                                 <div className="text-xs text-gray-400">Manage your account</div>
                             </div>
-                            <ChevronRight size={16} className="text-gray-500 transition-all group-hover:translate-x-1 group-hover:text-violet-400" />
+                            <ChevronRight size={16} className="text-gray-500 transition-all group-hover:translate-x-1" />
                         </Link>
 
                         {/* Divider */}
@@ -111,15 +107,15 @@ const Avatar = ({ userData }) => {
                         </div>
 
                         {/* Logout */}
-                        <a href="/" onClick={(e) => { e.preventDefault(); handleLogout(); }} className="group flex items-center px-8 py-4 hover:bg-gradient-to-r hover:from-zinc-900 hover:to-zinc-900 transition-all duration-300 border-b border-white/10">
-                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-gradient-to-br from-zinc-800/40 via-zinc-700/40 to-zinc-900/40 mr-4 group-hover:scale-110 transition-transform shadow-sm">
+                        <a href="/" onClick={(e) => { e.preventDefault(); handleLogout(); }} className="group flex items-center px-8 py-4 hover:bg-zinc-900 transition-all duration-300 border-b border-white/10">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-zinc-800/40 mr-4 group-hover:bg-zinc-700/40 transition-colors shadow-sm">
                                 <LogOut size={20} className="text-red-500" />
                             </div>
                             <div className="flex-1">
-                                <div className="font-semibold text-sm text-white group-hover:text-violet-300">Log Out</div>
+                                <div className="font-semibold text-sm text-white">Log Out</div>
                                 <div className="text-xs text-gray-400">Log out of account</div>
                             </div>
-                            <ChevronRight size={16} className="text-gray-500 transition-all group-hover:translate-x-1 group-hover:text-violet-400" />
+                            <ChevronRight size={16} className="text-gray-500 transition-all group-hover:translate-x-1" />
                         </a>
                     </div>
 
@@ -138,7 +134,7 @@ const Avatar = ({ userData }) => {
 
             {/* Logout Confirmation Modal */}
             {/* Confirmation Modal */}
-            {false && (
+            {showConfirm && (
                 <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
                     {/* Fixed backdrop with subtle spotlight */}
                     <div
@@ -150,9 +146,9 @@ const Avatar = ({ userData }) => {
                     />
 
                     {/* Glassmorphic Modal */}
-                    <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-500 border border-white/20 overflow-hidden">
+                    <div className="relative bg-black border border-white/10 backdrop-blur-xl rounded-3xl shadow-2xl w-full max-w-md transform transition-all duration-500 overflow-hidden">
                         {/* Gradient overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 rounded-3xl blur-sm pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-indigo-500/10 rounded-3xl blur-sm pointer-events-none" />
 
                         {/* Close button */}
                         <button
@@ -165,21 +161,15 @@ const Avatar = ({ userData }) => {
 
                         {/* Content */}
                         <div className="relative p-10 text-center">
-                            {/* Animated icon */}
+                            {/* Animated background circles */}
                             <div className="relative w-20 h-20 mx-auto mb-8">
-                                <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-pink-500/20 rounded-full animate-ping" />
-                                <div className="absolute inset-2 bg-gradient-to-r from-red-500/30 to-pink-500/30 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }} />
-
-                                <div className="relative w-20 h-20 bg-gradient-to-r from-red-500 to-pink-500 rounded-full flex items-center justify-center shadow-xl">
-                                    <LogOut size={32} className="text-black" />
+                                <div className="absolute inset-0 bg-blue-500/10 rounded-full animate-pulse" />
+                                <div className="relative w-20 h-20 bg-zinc-900 rounded-full flex items-center justify-center border border-white/10 shadow-xl">
+                                    <LogOut size={32} className="text-blue-500" />
                                 </div>
-
-                                {/* Mini floating icons */}
-                                <Shield size={16} className="absolute -top-2 -right-2 text-blue-500 animate-bounce" style={{ animationDelay: '1s' }} />
-                                <Zap size={16} className="absolute -bottom-2 -left-2 text-yellow-500 animate-bounce" style={{ animationDelay: '1.5s' }} />
                             </div>
                             {/* Message */}
-                            <p className="text-gray-800 mb-8 leading-relaxed text-lg">
+                            <p className="text-gray-300 mb-8 leading-relaxed text-lg">
                                 Are you sure you want to Log Out ?
                             </p>
 
@@ -188,7 +178,7 @@ const Avatar = ({ userData }) => {
                                 <button
                                     onClick={cancelLogout}
                                     disabled={isLoading}
-                                    className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 text-gray-800 font-semibold transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl hover:scale-105 border border-gray-200/50"
+                                    className="flex-1 px-8 py-4 rounded-xl bg-gray-800 hover:bg-gray-700 text-white font-semibold transition-all duration-300 disabled:opacity-50 shadow-lg hover:shadow-xl hover:scale-105 border border-white/10"
                                 >
                                     Cancel
                                 </button>
@@ -196,14 +186,14 @@ const Avatar = ({ userData }) => {
                                 <button
                                     onClick={confirmLogout}
                                     disabled={isLoading}
-                                    className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-red-600 font-semibold transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 relative overflow-hidden"
+                                    className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl hover:scale-105 relative overflow-hidden"
                                 >
                                     {/* Shine effect */}
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 transform translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700" />
 
                                     {isLoading ? (
                                         <div className="flex items-center gap-2">
-                                            <div className="w-5 h-5 rounded-full border-2 border-red-500 border-t-transparent animate-spin" />
+                                            <div className="w-5 h-5 rounded-full border-2 border-white border-t-transparent animate-spin" />
                                             <span className="whitespace-nowrap">Logout...</span>
                                         </div>
                                     ) : (
@@ -213,8 +203,6 @@ const Avatar = ({ userData }) => {
                                         </>
                                     )}
                                 </button>
-
-
                             </div>
                         </div>
 

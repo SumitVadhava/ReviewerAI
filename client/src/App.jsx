@@ -42,7 +42,7 @@ function App() {
       setUserProp({
         userName: user.username !== null ? user.username : "", // Add fallback to user.name
         email: user.email,
-        sub: user._id || "", // Add user ID
+        sub: user.id || "", // Add user ID
         picture: user.pictureUrl || "", // Add default picture
       });
     }

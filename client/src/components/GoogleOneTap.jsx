@@ -29,7 +29,7 @@ const GoogleOneTapLogin = () => {
       //  console.log("User Info:", userToSave);
 
       const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/auth/googleLogin`, userToSave);
-      if (response.data.message === "Login successfully") {
+      if (response.data.message === "Login successfully" || response.data.message === "Email already exists") {
         toast.success("Login successfully", {
           position: "top-right",
           autoClose: 900,
@@ -39,55 +39,12 @@ const GoogleOneTapLogin = () => {
           draggable: true,
           progress: undefined,
         });
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-        console.log('User saved:', response.data);
-      }
-      else if (response.data.message == 'Email already exists') {
-      //   toast.error("Already Have Account", {
-      //     position: "top-right",
-      //     autoClose: 900,
-      //     hideProgressBar: false,
-      //     pauseOnHover: true,
-      //     draggable: true,
-      //     progress: undefined,
-      //     closeOnClick: true,
-      //   });
-      //   console.log(response.data);
+
+        const token = response.data.token || response.data.token1 || response.data.token;
+        login(response.data.user, token);
         
-      // }
-      // setUserProp({
-      //   userName: userToSave.name,
-      //   email: userToSave.email,
-      //   sub: userToSave.google_id,
-      //   picture: userToSave.picture,
-      // });
-
-      // axios  
-      //     .post("http://localhost:7100/api/Google_login", userToSave)
-      //     .then((response) => {
-      //         login(response.data.user, response.data.token);
-      //     })
-      //     .catch((error) => {
-      //         console.error("Error saving user:", error);
-      //     });
-
-
-          toast.success("Login successfully", {
-                position: "top-right",
-                autoClose: 900,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-          });
-
-          login(response.data.user, response.data.token1);
-          console.log('User saved:', response.data);
-
-          console.log(response.data);
-          navigate('/');
+        console.log('User logged in via One Tap:', response.data);
+        navigate('/overview');
       }
     },
     onError: () => {
