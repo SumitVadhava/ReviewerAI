@@ -26,9 +26,10 @@ builder.Services.AddScoped<JwtService>(provider =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
-        builder => builder.AllowAnyOrigin()
+        builder => builder.SetIsOriginAllowed(origin => true)
                           .AllowAnyMethod()
-                          .AllowAnyHeader());
+                          .AllowAnyHeader()
+                          .AllowCredentials());
 });
 
 
@@ -60,9 +61,10 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("AllowAllOrigins"); 
 app.UseLiveReload();
 
 // app.Use(async (context, next) =>
@@ -104,13 +106,6 @@ app.UseSerilogRequestLogging(options =>
 
 app.UseAuthorization();
 app.MapControllers();
-app.UseCors("AllowAllOrigins"); 
-
-app.MapGet("/test-db", async (AppDbContext db) =>
-{
-    var canConnect = await db.Database.CanConnectAsync();
-    return canConnect ? Results.Ok("✅ DB connected") : Results.Problem("❌ DB not connected");
-});
 
 app.MapGet("/", () => "Welcome to the ReviewerAI! 🤖 ☠️ 🔥");
 

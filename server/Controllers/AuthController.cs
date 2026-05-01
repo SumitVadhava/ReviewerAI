@@ -4,13 +4,14 @@ using server.Data;
 using server.Models;
 using server.DTOs;
 using server.Services;
-using BCrypt.Net;
+using Microsoft.AspNetCore.Cors;
 
 namespace server.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
- public class AuthController : Controller
+[EnableCors("AllowAllOrigins")]
+public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly JwtService _jwtService;
@@ -25,7 +26,7 @@ namespace server.Controllers;
     public async Task<IActionResult> Register(RegisterDto dto)
     {
         if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-            return Json(new { message = "Email already exists" });
+            return BadRequest(new { message = "Email already exists" });
 
         var user = new User
         {
@@ -38,7 +39,7 @@ namespace server.Controllers;
         await _context.SaveChangesAsync();
 
         var token = _jwtService.GenerateToken(user, null);
-        return Json(new { message = "Signup successfully", token,user = new {UserId =  user.Id, Username = user.Username, Email = user.Email } });
+        return Ok(new { message = "Signup successfully", token, user = new { id = user.Id, username = user.Username, email = user.Email } });
     }
 
     [HttpPost("login")]
@@ -46,42 +47,36 @@ namespace server.Controllers;
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            return Json(new { message = "Invalid credentials" });
+            return Unauthorized(new { message = "Invalid credentials" });
 
         var token = _jwtService.GenerateToken(user, null);
-        return Json(new { message = "Login successfully", token, user = new { UserId = user.Id, Username = user.Username, Email = user.Email } });
+        return Ok(new { message = "Login successfully", token, user = new { id = user.Id, username = user.Username, email = user.Email } });
     }
 
 
     [HttpPost("googleLogin")]
     public async Task<IActionResult> GoogleLogin(GoogleLoginDto dto)
     {
-        if (await _context.GoogleUsers.AnyAsync(u => u.GoogleId == dto.GoogleId))
+        var existingUser = await _context.GoogleUsers.FirstOrDefaultAsync(u => u.GoogleId == dto.GoogleId);
+        
+        if (existingUser != null)
         {
-            var googleUser1 = new GoogleUser
-            {
-                Username = dto.Username,
-                Email = dto.Email,
-                PictureUrl = dto.PictureUrl,
-                GoogleId = dto.GoogleId
-            };
-            var token1 = _jwtService.GenerateToken(null, googleUser1);
-            return Json(new { message = "Email already exists", token1, user = new { dto.GoogleId, dto.Username, dto.Email, dto.PictureUrl } });         
+            var token = _jwtService.GenerateToken(null, existingUser);
+            return Ok(new { message = "Login successfully", token, user = new { id = existingUser.Id, username = existingUser.Username, email = existingUser.Email, pictureUrl = existingUser.PictureUrl } });         
         }
 
-            var googleUser = new GoogleUser
-            {
-                Username = dto.Username,
-                Email = dto.Email,
-                PictureUrl = dto.PictureUrl,
-                GoogleId = dto.GoogleId
-            };
+        var googleUser = new GoogleUser
+        {
+            Username = dto.Username,
+            Email = dto.Email,
+            PictureUrl = dto.PictureUrl,
+            GoogleId = dto.GoogleId
+        };
 
-            _context.GoogleUsers.Add(googleUser);
-            await _context.SaveChangesAsync();
+        _context.GoogleUsers.Add(googleUser);
+        await _context.SaveChangesAsync();
 
-            var token = _jwtService.GenerateToken(null, googleUser);
-            return Json(new { message = "Login successfully", token, user = new { googleUser.Id, googleUser.Username, googleUser.Email, googleUser.PictureUrl } });
-            // return Json(new { message = "Signup successfully", user = new { user.Id, user.Username, user.Email } });
-        }
+        var newToken = _jwtService.GenerateToken(null, googleUser);
+        return Ok(new { message = "Login successfully", token = newToken, user = new { id = googleUser.Id, username = googleUser.Username, email = googleUser.Email, pictureUrl = googleUser.PictureUrl } });
     }
+}

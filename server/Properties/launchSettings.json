@@ -18,7 +18,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HTTPS_PORT": "7161",
-        "JWT_SECRET": "my-top-secret"
+        "JWT:SECRET": "ks82J&*9sdfj92@Mjsd8291smczX8%jsldf"
       }
     }
   }

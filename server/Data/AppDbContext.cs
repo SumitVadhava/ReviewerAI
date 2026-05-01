@@ -9,5 +9,7 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users { get; set; }
     public DbSet<GoogleUser> GoogleUsers { get; set; }  
+    public DbSet<UserProfile> UserProfiles { get; set; }
+    public DbSet<ReviewHistory> ReviewHistories { get; set; }
     
 }

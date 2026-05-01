@@ -1,0 +1,16 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+
+# IDE files
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Environment variables
+appsettings.Development.json
+appsettings.Local.json
+.env
