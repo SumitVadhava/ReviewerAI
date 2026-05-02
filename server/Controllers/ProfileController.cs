@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using server.Data;
 using server.Models;
 using server.DTOs;
+
+namespace server.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 public class ProfileController : ControllerBase

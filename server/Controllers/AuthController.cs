@@ -4,6 +4,9 @@ using server.Data;
 using server.Models;
 using server.DTOs;
 using server.Services;
+
+namespace server.Controllers;
+
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
