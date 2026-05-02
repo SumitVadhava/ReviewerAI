@@ -53,8 +53,6 @@ builder.Host.UseSerilog((context, configuration) =>
 
 var app = builder.Build();
 
-app.UseCors("AllowAllOrigins"); 
-
 // Middleware
 if (!app.Environment.IsDevelopment())
 {
@@ -65,6 +63,7 @@ if (!app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseCors("AllowAllOrigins"); // MUST be after UseRouting in .NET 6+
 app.UseLiveReload();
 
 // app.Use(async (context, next) =>
