@@ -4,13 +4,8 @@ using server.Data;
 using server.Models;
 using server.DTOs;
 using server.Services;
-using Microsoft.AspNetCore.Cors;
-
-namespace server.Controllers;
-
 [ApiController]
 [Route("api/[controller]")]
-[EnableCors("AllowAllOrigins")]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;

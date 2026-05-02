@@ -26,10 +26,9 @@ builder.Services.AddScoped<JwtService>(provider =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
-        builder => builder.SetIsOriginAllowed(origin => true)
+        builder => builder.AllowAnyOrigin()
                           .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials());
+                          .AllowAnyHeader());
 });
 
 
