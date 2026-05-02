@@ -26,7 +26,7 @@ builder.Services.AddScoped<JwtService>(provider =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
-        builder => builder.WithOrigins("http://localhost:5173", "http://localhost:5174", "https://reviewerai.vercel.app")
+        builder => builder.SetIsOriginAllowed(origin => true)
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials());
@@ -54,6 +54,8 @@ builder.Host.UseSerilog((context, configuration) =>
 
 var app = builder.Build();
 
+app.UseCors("AllowAllOrigins"); 
+
 // Middleware
 if (!app.Environment.IsDevelopment())
 {
@@ -64,7 +66,6 @@ if (!app.Environment.IsDevelopment())
 // app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseCors("AllowAllOrigins"); 
 app.UseLiveReload();
 
 // app.Use(async (context, next) =>
