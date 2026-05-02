@@ -4,7 +4,8 @@ using server.Data;
 using server.Models;
 using server.DTOs;
 
-namespace server.Controllers;
+namespace server.Controllers
+{
 
 [ApiController]
 [Route("api/[controller]")]
@@ -106,4 +107,5 @@ public class ProfileController : ControllerBase
             return StatusCode(500, new { message = "Internal server error", detail = ex.Message });
         }
     }
+}
 }

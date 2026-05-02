@@ -5,8 +5,8 @@ using server.Models;
 using server.DTOs;
 using server.Services;
 
-namespace server.Controllers;
-
+namespace server.Controllers
+{
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
@@ -77,4 +77,5 @@ public class AuthController : ControllerBase
         var newToken = _jwtService.GenerateToken(null, googleUser);
         return Ok(new { message = "Login successfully", token = newToken, user = new { id = googleUser.Id, username = googleUser.Username, email = googleUser.Email, pictureUrl = googleUser.PictureUrl } });
     }
+}
 }
