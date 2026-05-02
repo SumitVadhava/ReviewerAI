@@ -26,7 +26,7 @@ builder.Services.AddScoped<JwtService>(provider =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
-        builder => builder.SetIsOriginAllowed(origin => true)
+        builder => builder.WithOrigins("http://localhost:5173", "http://localhost:5174", "https://reviewerai.vercel.app")
                           .AllowAnyMethod()
                           .AllowAnyHeader()
                           .AllowCredentials());
